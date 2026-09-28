@@ -1,0 +1,6 @@
+{
+  "name": "Michael Bakare Digital Experience Platform",
+  "description": "Premium globally accessible digital publishing store, portfolio, and service quotation platform for Michael Bakare.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

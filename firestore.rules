@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && (request.auth.token.email == 'taican4real@gmail.com' || exists(/databases/$(database)/documents/users/$(request.auth.uid)));
+    }
+    
+    function incoming() { return request.resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$'); }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+    
+    match /portfolio/{itemId} { allow read: if true; allow write: if isAdmin(); }
+    match /services/{itemId} { allow read: if true; allow write: if isAdmin(); }
+    match /products/{itemId} { allow read: if true; allow write: if isAdmin(); }
+    
+    match /orders/{orderId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if incoming().status == 'PENDING' && incoming().keys().hasAll(['customerEmail', 'customerName', 'totalAmount']);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+      
+      match /downloads/{downloadId} {
+        allow read, write: if isAdmin(); // Server-side admin SDK handles actual downloads logging
+      }
+    }
+    
+    match /quotes/{quoteId} {
+      allow get, list: if isAdmin();
+      allow create: if incoming().status == 'NEW' && incoming().keys().hasAll(['name', 'email', 'serviceName']) && incoming().name.size() < 100 && incoming().email.size() < 100;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Generic Content & Site Settings Collections
+    match /biography/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /career/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /achievements/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /legacy/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /projects/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /categories/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /digitalAssets/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /customers/{id} { allow read, write: if isAdmin(); }
+    match /media/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /testimonials/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /seo/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /socialLinks/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /settings/{id} { allow read: if true; allow write: if isAdmin(); }
+    
+    match /analytics/{id} { allow read, write: if isAdmin(); }
+    match /systemLogs/{id} { allow read, write: if isAdmin(); }
+    match /timelineEvents/{id} { allow read: if true; allow write: if isAdmin(); }
+  
+    match /subscribers/{subscriberId} {
+      allow get, list, update, delete: if isAdmin();
+      allow create: if incoming().keys().hasAll(['email', 'subscribedAt']) &&
+                    incoming().email is string &&
+                    incoming().email.size() >= 3 &&
+                    incoming().email.size() <= 150 &&
+                    incoming().email.matches('^[^@]+@[^@]+\\.[^@]+$') &&
+                    incoming().subscribedAt == request.time;
+    }
+}
+}

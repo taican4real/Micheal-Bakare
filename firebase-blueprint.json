@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Administrator accounts",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    },
+    "PortfolioItem": {
+      "title": "PortfolioItem",
+      "description": "Works and legacy archive items",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "category": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Digital storefront items",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "currency": { "type": "string", "enum": ["USD", "NGN", "GBP", "EUR"] },
+        "imageUrl": { "type": "string" },
+        "downloadUrl": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "price", "currency"]
+    },
+    "QuoteRequest": {
+      "title": "QuoteRequest",
+      "description": "Client service quotation requests",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "maxLength": 150 },
+        "serviceType": { "type": "string", "maxLength": 150 },
+        "details": { "type": "string", "maxLength": 2000 },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "replied"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "serviceType", "details", "status"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Authorized administrators"
+    },
+    "portfolio/{itemId}": {
+      "schema": { "$ref": "#/entities/PortfolioItem" },
+      "description": "Portfolio works"
+    },
+    "products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Digital products for sale"
+    },
+    "quotes/{quoteId}": {
+      "schema": { "$ref": "#/entities/QuoteRequest" },
+      "description": "Inbound quote requests"
+    }
+  }
+}

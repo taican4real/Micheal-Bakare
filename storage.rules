@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Admin function to check if the user is an admin
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'taican4real@gmail.com' ||
+        firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+      );
+    }
+
+    // Public Assets (e.g. cover images, preview audio, media uploads)
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /uploads/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Quote attachments from contact form
+    match /quotes/{allPaths=**} {
+      allow create: if true;
+      allow read, write: if isAdmin();
+    }
+
+    // Digital Products
+    match /digital_products/{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // General fallback: allow read for public content, write for admin
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
